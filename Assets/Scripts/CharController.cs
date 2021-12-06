@@ -88,24 +88,6 @@ public class CharController : MonoBehaviour {
         curInputs.framesPassed = 0;
     }
 
-    private void OnTriggerEnter(Collider other) {
-        if (other.CompareTag("Room")) {
-            MeshRenderer[] renders = other.GetComponentsInChildren<MeshRenderer>();
-            foreach (MeshRenderer render in renders) {
-                render.enabled = true;
-            }
-        }
-    }
-
-    private void OnTriggerExit(Collider other) {
-        if (other.CompareTag("Room")) {
-            MeshRenderer[] renders = other.GetComponentsInChildren<MeshRenderer>();
-            foreach (MeshRenderer render in renders) {
-                render.enabled = false;
-            }
-        }
-    }
-
     bool isGrounded() {
         int layer = ~(1 << LayerMask.NameToLayer("Player"));
         /*Debug.DrawRay(transform.position + (Vector3.down * jumpCheckYOffset), Vector3.down * col.bounds.extents.x * jumpCheckRadOffset, Color.red);

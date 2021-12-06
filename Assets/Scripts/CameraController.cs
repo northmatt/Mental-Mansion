@@ -8,5 +8,6 @@ public class CameraController : MonoBehaviour {
     // LateUpdate is called once per frame at the end of everything
     void LateUpdate() {
         transform.position = following.position + orginOffset;
+		transform.LookAt(following);
     }
 }

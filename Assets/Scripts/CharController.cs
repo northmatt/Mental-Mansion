@@ -42,19 +42,18 @@ public class CharController : MonoBehaviour {
 		if (!gameController.CursorLocked)
 			return;
 
-		bool movement = false;
-
 		//Store input from each update to be considered for fixed updates, dont do needless addition of 0 if unneeded
 		curInputs.tempAxis.Set(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         if (Input.GetButtonDown("Jump") && curInputs.jump == 0 && grounded)
 			curInputs.jump = 3;
-        if (curInputs.tempAxis.x != 0f) { curInputs.axis.x += curInputs.tempAxis.x;	movement = true; }
-		if (curInputs.tempAxis.y != 0f) { curInputs.axis.y += curInputs.tempAxis.y;	movement = true; }
+        if (curInputs.tempAxis.x != 0f) { curInputs.axis.x += curInputs.tempAxis.x; }
+		if (curInputs.tempAxis.y != 0f) { curInputs.axis.y += curInputs.tempAxis.y; }
         ++curInputs.framesPassed;
 		//anim.SetBool("schmooving", movement);
     }
 
     private void FixedUpdate() {
+		//RB3D.AddTorque(Vector3.up * 100, ForceMode.Impulse);
         grounded = isGrounded();
 
         //if both inputs were pressed then normalize inputs
@@ -62,12 +61,12 @@ public class CharController : MonoBehaviour {
             curInputs.axis.Set(curInputs.axis.x * sqrt2, curInputs.axis.y * sqrt2);
 
 		if (curInputs.axis.x != 0f) {
-            RB3D.AddForce(transform.right * moveForce * curInputs.axis.x / curInputs.framesPassed * Time.fixedDeltaTime);
+            RB3D.AddForce(Vector3.right * moveForce * curInputs.axis.x / curInputs.framesPassed * Time.fixedDeltaTime);
             curInputs.axis.x = 0f;
 		}
 
         if (curInputs.axis.y != 0f) {
-            RB3D.AddForce(transform.forward * moveForce * curInputs.axis.y / curInputs.framesPassed * Time.fixedDeltaTime);
+            RB3D.AddForce(Vector3.forward * moveForce * curInputs.axis.y / curInputs.framesPassed * Time.fixedDeltaTime);
             curInputs.axis.y = 0f;
 		}
 
@@ -86,6 +85,11 @@ public class CharController : MonoBehaviour {
             RB3D.AddForce(Physics.gravity * gravMult, ForceMode.Acceleration);
 
         curInputs.framesPassed = 0;
+
+		if (RB3D.velocity != Vector3.zero) {
+			RB3D.rotation = Quaternion.AngleAxis(
+				Vector3.SignedAngle(Vector3.forward, RB3D.velocity, Vector3.up), Vector3.up);
+		}
     }
 
     bool isGrounded() {

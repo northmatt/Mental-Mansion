@@ -8,15 +8,38 @@ public class Gaze : MonoBehaviour
 	public Transform head;
 	public Health player;
 	public float viewRange = 10;
-	public float fov = 90f;
+	public float fov = 30f;
+	public float rotRange = 60f;
+	public float rotCycleSpeed = 1f;
 	public float damage = 1f;
 	bool playerInSight = false;
+	Quaternion startQuat;
+	Quaternion endQuat;
+	float counter = 0.5f;
 
     // Start is called before the first frame update
     void Start()
     {
+		GetComponentInChildren<Light>().spotAngle = fov;
         beam.gameObject.SetActive(false);
+		startQuat = Quaternion.AngleAxis(rotRange * 0.5f, Vector3.up) * transform.rotation;
+		endQuat = Quaternion.AngleAxis(rotRange * -0.5f, Vector3.up) * transform.rotation;
     }
+
+	private void Update() {
+		if (playerInSight)	return;
+		if (counter < 1f) {
+			counter += Time.deltaTime * rotCycleSpeed;
+			if (counter > 1f)
+				counter = -counter;
+		}
+		if (counter > 0) {
+			transform.rotation = Quaternion.Slerp(startQuat, endQuat, counter);
+		}
+		else {
+			transform.rotation = Quaternion.Slerp(startQuat, endQuat, -counter);
+		}
+	}
 
 	private void FixedUpdate() {
 		LookForPlayer();

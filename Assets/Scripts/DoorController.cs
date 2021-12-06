@@ -12,7 +12,7 @@ public class DoorController : MonoBehaviour {
     private ConstantForce cf;
     private MeshRenderer render;
     private float startOffset = 0f;
-    private bool CFMoveLast = false;
+    private const float maxRot = 1f / 90f;
 
     private void Start() {
         rb = GetComponent<Rigidbody>();
@@ -25,14 +25,9 @@ public class DoorController : MonoBehaviour {
     private void FixedUpdate() {
         float angle = Mathf.DeltaAngle(transform.localEulerAngles.y, startOffset);
         if (Mathf.Abs(angle) > 1f)
-            cf.torque = Vector3.up * Mathf.Clamp((angle > 180f) ? angle - 360f : angle, -moveForce, moveForce);
-        else
+            cf.torque = Vector3.up * moveForce * angle * maxRot;
+		else
             cf.torque = Vector3.zero;
-
-        if (cf.torque == Vector3.zero && CFMoveLast)
-            rb.angularVelocity = Vector3.zero;
-
-        CFMoveLast = (cf.torque != Vector3.zero);
 
         render.enabled = Room1.isRendering || Room2.isRendering;
     }

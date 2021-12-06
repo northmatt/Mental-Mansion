@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 public class Win : MonoBehaviour
 {
 	public string sceneName = "Win";
-    private void OnTriggerEnter(Collider other) {
+    public void OnTriggerEnter(Collider other) {
 		if (other.CompareTag("Player")) {
 			SceneManager.LoadScene(sceneName);
 			Cursor.lockState = CursorLockMode.None;

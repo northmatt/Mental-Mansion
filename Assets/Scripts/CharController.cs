@@ -35,7 +35,7 @@ public class CharController : MonoBehaviour {
         col = GetComponent<Collider>();
         gameController = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameController>();
 
-        //transform.GetChild(0).transform.Rotate(0f, 0f, rotateArmature);
+		//transform.GetChild(0).transform.Rotate(0f, 0f, rotateArmature);
     }
 
 	// Update is called once per frame
@@ -63,7 +63,8 @@ public class CharController : MonoBehaviour {
             if (curInputs.axis.magnitude > 1f)
                 curInputs.axis = curInputs.axis / curInputs.axis.magnitude;
 
-            RB3D.AddForce(transform.right * moveForce * curInputs.axis.x * Time.fixedDeltaTime + transform.forward * moveForce * curInputs.axis.y * Time.fixedDeltaTime);
+            RB3D.AddForce(Vector3.right * moveForce * curInputs.axis.x * Time.fixedDeltaTime
+				+ Vector3.forward * moveForce * curInputs.axis.y * Time.fixedDeltaTime);
             curInputs.axis = Vector2.zero;
 		}
 

@@ -22,9 +22,7 @@ public class CharController : MonoBehaviour {
     private Collider col;
 
     private Inputs curInputs;
-    static float sqrt2 = 1f / Mathf.Sqrt(2);         //sqrt is a fairly intensive operation, storing it in memory to avoid using opertaion every fixed update
     private bool grounded = false;
-    private bool dash = false;
 
 	// Start is called before the first frame update
 	void Start() {
@@ -32,7 +30,6 @@ public class CharController : MonoBehaviour {
 		RB3D = GetComponent<Rigidbody>();
         col = GetComponent<Collider>();
         gameController = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameController>();
-        sqrt2 = 1f / Mathf.Sqrt(2);         //sqrt is a fairly intensive operation, storing it in memory to avoid using opertaion every fixed update
 
         //transform.GetChild(0).transform.Rotate(0f, 0f, rotateArmature);
     }
@@ -57,18 +54,14 @@ public class CharController : MonoBehaviour {
     private void FixedUpdate() {
         grounded = isGrounded();
 
-        //if both inputs were pressed then normalize inputs
-        if (curInputs.axis.x != 0f && curInputs.axis.y != 0f)
-            curInputs.axis.Set(curInputs.axis.x * sqrt2, curInputs.axis.y * sqrt2);
+		if (curInputs.axis.x != 0f || curInputs.axis.y != 0f) {
+            //limit magnitude to 1
+            curInputs.axis = curInputs.axis / curInputs.framesPassed;
+            if (curInputs.axis.magnitude > 1f)
+                curInputs.axis = curInputs.axis / curInputs.axis.magnitude;
 
-		if (curInputs.axis.x != 0f) {
-            RB3D.AddForce(transform.right * moveForce * curInputs.axis.x / curInputs.framesPassed * Time.fixedDeltaTime);
-            curInputs.axis.x = 0f;
-		}
-
-        if (curInputs.axis.y != 0f) {
-            RB3D.AddForce(transform.forward * moveForce * curInputs.axis.y / curInputs.framesPassed * Time.fixedDeltaTime);
-            curInputs.axis.y = 0f;
+            RB3D.AddForce(transform.right * moveForce * curInputs.axis.x * Time.fixedDeltaTime + transform.forward * moveForce * curInputs.axis.y * Time.fixedDeltaTime);
+            curInputs.axis = Vector2.zero;
 		}
 
         //jump on maxed cooldown

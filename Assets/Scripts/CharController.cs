@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 struct Inputs {
     public Vector2 axis;
@@ -15,16 +16,17 @@ public class CharController : MonoBehaviour {
     public float rotateArmature = 0f;
     public float jumpCheckYOffset = 0.52f;
     public float jumpCheckRadOffset = 0.975f;
+    [HideInInspector]
+    public Transform currentRoom;
 
     private GameController gameController;
     private Rigidbody RB3D;
     private Animator anim;
     private Collider col;
+    private List<Collider> rooms = new List<Collider>();
 
     private Inputs curInputs;
-    static float sqrt2 = 1f / Mathf.Sqrt(2);         //sqrt is a fairly intensive operation, storing it in memory to avoid using opertaion every fixed update
     private bool grounded = false;
-    private bool dash = false;
 
 	// Start is called before the first frame update
 	void Start() {
@@ -32,7 +34,6 @@ public class CharController : MonoBehaviour {
 		RB3D = GetComponent<Rigidbody>();
         col = GetComponent<Collider>();
         gameController = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameController>();
-        sqrt2 = 1f / Mathf.Sqrt(2);         //sqrt is a fairly intensive operation, storing it in memory to avoid using opertaion every fixed update
 
         //transform.GetChild(0).transform.Rotate(0f, 0f, rotateArmature);
     }
@@ -56,18 +57,14 @@ public class CharController : MonoBehaviour {
 		//RB3D.AddTorque(Vector3.up * 100, ForceMode.Impulse);
         grounded = isGrounded();
 
-        //if both inputs were pressed then normalize inputs
-        if (curInputs.axis.x != 0f && curInputs.axis.y != 0f)
-            curInputs.axis.Set(curInputs.axis.x * sqrt2, curInputs.axis.y * sqrt2);
+		if (curInputs.axis.x != 0f || curInputs.axis.y != 0f) {
+            //limit magnitude to 1
+            curInputs.axis = curInputs.axis / curInputs.framesPassed;
+            if (curInputs.axis.magnitude > 1f)
+                curInputs.axis = curInputs.axis / curInputs.axis.magnitude;
 
-		if (curInputs.axis.x != 0f) {
-            RB3D.AddForce(Vector3.right * moveForce * curInputs.axis.x / curInputs.framesPassed * Time.fixedDeltaTime);
-            curInputs.axis.x = 0f;
-		}
-
-        if (curInputs.axis.y != 0f) {
-            RB3D.AddForce(Vector3.forward * moveForce * curInputs.axis.y / curInputs.framesPassed * Time.fixedDeltaTime);
-            curInputs.axis.y = 0f;
+            RB3D.AddForce(transform.right * moveForce * curInputs.axis.x * Time.fixedDeltaTime + transform.forward * moveForce * curInputs.axis.y * Time.fixedDeltaTime);
+            curInputs.axis = Vector2.zero;
 		}
 
         //jump on maxed cooldown
@@ -86,10 +83,31 @@ public class CharController : MonoBehaviour {
 
         curInputs.framesPassed = 0;
 
+        float distance = 999f;
+        foreach(Collider room in rooms) {
+            float newDist = Vector3.Distance(room.transform.position, transform.position);
+            if (newDist < distance) {
+                distance = newDist;
+                currentRoom = room.transform;
+            }
+        }
+
 		if (RB3D.velocity != Vector3.zero) {
 			RB3D.rotation = Quaternion.AngleAxis(
 				Vector3.SignedAngle(Vector3.forward, RB3D.velocity, Vector3.up), Vector3.up);
 		}
+    }
+
+    private void OnTriggerEnter(Collider other) {
+        if (other.CompareTag("Room")) {
+            rooms.Add(other);
+        }
+    }
+
+    private void OnTriggerExit(Collider other) {
+        if (other.CompareTag("Room")) {
+            rooms.Remove(other);
+        }
     }
 
     bool isGrounded() {

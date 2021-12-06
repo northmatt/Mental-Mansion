@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 struct Inputs {
     public Vector2 axis;
@@ -15,11 +16,14 @@ public class CharController : MonoBehaviour {
     public float rotateArmature = 0f;
     public float jumpCheckYOffset = 0.52f;
     public float jumpCheckRadOffset = 0.975f;
+    [HideInInspector]
+    public Transform currentRoom;
 
     private GameController gameController;
     private Rigidbody RB3D;
     private Animator anim;
     private Collider col;
+    private List<Collider> rooms = new List<Collider>();
 
     private Inputs curInputs;
     private bool grounded = false;
@@ -79,6 +83,27 @@ public class CharController : MonoBehaviour {
             RB3D.AddForce(Physics.gravity * gravMult, ForceMode.Acceleration);
 
         curInputs.framesPassed = 0;
+
+        float distance = 999f;
+        foreach(Collider room in rooms) {
+            float newDist = Vector3.Distance(room.transform.position, transform.position);
+            if (newDist < distance) {
+                distance = newDist;
+                currentRoom = room.transform;
+            }
+        }
+    }
+
+    private void OnTriggerEnter(Collider other) {
+        if (other.CompareTag("Room")) {
+            rooms.Add(other);
+        }
+    }
+
+    private void OnTriggerExit(Collider other) {
+        if (other.CompareTag("Room")) {
+            rooms.Remove(other);
+        }
     }
 
     bool isGrounded() {
